@@ -1,15 +1,4 @@
 #include "get_next_line.h"
-#include <stdio.h>
-
-size_t	ft_strlen(const char *str)
-{
-	size_t	count;
-
-	count = 0;
-	while (*(str + count))
-		count++;
-	return (count);
-}
 
 char	*ft_strjoin(char const *s1, char const *s2)
 {
@@ -39,65 +28,27 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	return (new_str);
 }
 
-void	*ft_memset(void *b, int c, size_t n)
+char	*get_all_lines(char *str, int fd)
 {
-	size_t	i;
-	char	*char_b;
+	int		read_ret;
+	char	buffer[BUFFER_SIZE + 1];
 
-	if (b == NULL)
+	str = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
+	if (!str)
 		return (NULL);
-	char_b = (char *) b;
-	i = 0;
-	while (i < n)
+	read_ret = read(fd, buffer, BUFFER_SIZE);
+	while (read_ret > 0)
 	{
-		char_b[i] = c;
-		i++;
+		buffer[read_ret] = '\0';
+		str = ft_strjoin(str, buffer);
+		read_ret = read(fd, buffer, BUFFER_SIZE);
 	}
-	return (b);
-}
-
-void	ft_bzero(void *s, size_t n)
-{
-	ft_memset(s, 0, n);
-}
-
-void	*ft_calloc(size_t count, size_t size)
-{
-	void	*to_ret;
-	if (count == 0 || size == 0)
-	{
-		count = 1;
-		size = 1;
-	}
-	to_ret = malloc(count * size);
-	if (!to_ret)
-		return (NULL);
-	ft_bzero(to_ret, size * count);
-	return (to_ret);
-}
-
-char    *get_all_lines(char *str, int fd)
-{
-    int     read_ret;
-    char    buffer[BUFFER_SIZE + 1];
-
-    str = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
-    if (!str)
-        return (NULL);
-   read_ret = read(fd, buffer, BUFFER_SIZE);
-   while (read_ret > 0)
-   {
-       buffer[read_ret] = '\0';
-       str = ft_strjoin(str, buffer);
-       read_ret  = read(fd, buffer, BUFFER_SIZE);
-   }
-   return (str);
+	return (str);
 }
 
 char	*ft_strncpy(const char *s, int size)
 {
 	char	*to_ret;
-
 
 	to_ret = malloc(sizeof(char) * (size));
 	if (to_ret == NULL)
@@ -112,51 +63,50 @@ char	*ft_strncpy(const char *s, int size)
 	return (to_ret);
 }
 
-char    *get_next_line(int fd)
+char	*get_next_line(int fd)
 {
-    static char		*str;
-    char    		*to_ret;
-    int 			i;
-    
+	static char		*str;
+	char			*to_ret;
+	int				i;
+
 	i = 0;
-    if (fd == -1)
-        return (NULL);
-    if (!str)
-    {
-        str = get_all_lines(str, fd);
-        if (!str)
-            return (NULL);
-    }
-    while (str[i] && str[i] != '\n')
-        i++;
-    to_ret = ft_strncpy(str, i + 1);
-    if (!to_ret)
-    {
-        free(str);
-        return (NULL);
-    }
+	if (fd == -1)
+		return (NULL);
+	if (!str)
+	{
+		str = get_all_lines(str, fd);
+		if (!str)
+			return (NULL);
+	}
+	while (str[i] && str[i] != '\n')
+		i++;
+	to_ret = ft_strncpy(str, i + 1);
+	if (!to_ret)
+	{
+		free(str);
+		return (NULL);
+	}
 	str = &str[i + 1];
-   return (to_ret);
+	return (to_ret);
 }
 
-#include <fcntl.h>
-
-
-int main()
-{
-    int     fd;
-    char    *res;
-    fd = open("multiple_line_no_nl",O_RDONLY);
-    if (fd == -1)
-    {
-        printf("MERDE");
-        return (-1);
-    }
-    res = get_next_line(fd);
-    while (*res)
-    {
-		printf("%s", res);
-        res = get_next_line(fd);
-    }
-    return (0);
-}
+// #include <fcntl.h>
+// #include <stdio.h>
+// int main()
+// {
+//     int     fd;
+//     char    *res;
+//     fd = open("multiple_line_with_nl",O_RDONLY);
+//     if (fd == -1)
+//     {
+//         printf("MERDE");
+//         return (-1);
+//     }
+//     res = get_next_line(fd);
+//     while (*res)
+//     {
+// 		printf("%s", res);
+//         res = get_next_line(fd);
+//     }
+//     return (0);
+// }
