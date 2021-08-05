@@ -1,112 +1,68 @@
 #include "get_next_line.h"
+#include <stdio.h>
 
-char	*ft_strjoin(char const *s1, char const *s2)
+static char	*ft_free(char *buffer, char *buff_rem)
 {
-	size_t	count;
-	char	*new_str;
-	size_t	s1_len;
-
-	if (s1 == NULL || s2 == NULL)
-		return (NULL);
-	s1_len = ft_strlen(s1);
-	count = 0;
-	new_str = malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2)));
-	if (new_str == NULL)
-		return (NULL);
-	while (s1[count] && count < s1_len)
+	if (buffer)
+		free(buffer);
+	if (buff_rem)
 	{
-		new_str[count] = s1[count];
-		count++;
-	}
-	count = 0;
-	while (s2[count])
-	{
-		new_str[count + s1_len] = s2[count];
-		count++;
-	}
-	new_str[count + s1_len] = '\0';
-	return (new_str);
+		free(buff_rem);
+		buff_rem = NULL;
+	}	
+	return (NULL);
 }
 
-char	*get_all_lines(char *str, int fd)
-{
-	int		read_ret;
-	char	buffer[BUFFER_SIZE + 1];
-
-	str = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
-	if (!str)
-		return (NULL);
-	read_ret = read(fd, buffer, BUFFER_SIZE);
-	while (read_ret > 0)
-	{
-		buffer[read_ret] = '\0';
-		str = ft_strjoin(str, buffer);
-		read_ret = read(fd, buffer, BUFFER_SIZE);
-	}
-	return (str);
-}
-
-char	*ft_strncpy(const char *s, int size)
+char	*ft_cut(char **buff_rem, char *buffer)
 {
 	char	*to_ret;
+	char	*tmp;
 
-	to_ret = malloc(sizeof(char) * (size));
-	if (to_ret == NULL)
-		return (NULL);
-	to_ret[size] = '\0';
-	size--;
-	while (size >= 0)
+	if (ft_strchr(*buff_rem, '\n') > -1)
 	{
-		to_ret[size] = s[size];
-		size--;
+		to_ret = ft_substr(*buff_rem, 0, ft_strchr(*buff_rem, '\n') + 1);
+		if (!to_ret)
+			return (ft_free(buffer, *buff_rem));
+		tmp = *buff_rem;
+		*buff_rem = ft_substr(tmp, ft_strchr(*buff_rem, '\n') + 1,
+				ft_strlen(*buff_rem) - ft_strchr(*buff_rem, '\n') + 1);
+		if (!(*buff_rem))
+			return (ft_free(buffer, *buff_rem));
+		free(tmp);
 	}
+	else
+	{
+		to_ret = *buff_rem;
+		*buff_rem = NULL;
+	}
+	free(buffer);
 	return (to_ret);
 }
 
 char	*get_next_line(int fd)
 {
-	static char		*str;
-	char			*to_ret;
-	int				i;
+	char		*buffer;
+	static char	*buff_rem;
+	int			ret_read;
 
-	i = 0;
-	if (fd == -1)
+	if (fd == -1 || BUFFER_SIZE < 1)
 		return (NULL);
-	if (!str)
+	buffer = malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	if (!buffer)
+		return (ft_free(buffer, buff_rem));
+	ret_read = 1;
+	while (ret_read > 0 && ft_strchr(buff_rem, '\n') == -1)
 	{
-		str = get_all_lines(str, fd);
-		if (!str)
-			return (NULL);
+		ret_read = read(fd, buffer, BUFFER_SIZE);
+		if (ret_read == -1)
+			return (ft_free(buffer, buff_rem));
+		buffer[ret_read] = '\0';
+		if (ret_read)
+			buff_rem = ft_strjoin(buff_rem, buffer);
+		if (!buff_rem)
+			return (ft_free(buffer, buff_rem));
 	}
-	while (str[i] && str[i] != '\n')
-		i++;
-	to_ret = ft_strncpy(str, i + 1);
-	if (!to_ret)
-	{
-		free(str);
-		return (NULL);
-	}
-	str = &str[i + 1];
-	return (to_ret);
+	if (buff_rem == NULL || buff_rem[0] == '\0')
+		return (ft_free(buff_rem, buffer));
+	return (ft_cut(&buff_rem, buffer));
 }
-
-// #include <fcntl.h>
-// #include <stdio.h>
-// int main()
-// {
-//     int     fd;
-//     char    *res;
-//     fd = open("multiple_line_with_nl",O_RDONLY);
-//     if (fd == -1)
-//     {
-//         printf("MERDE");
-//         return (-1);
-//     }
-//     res = get_next_line(fd);
-//     while (*res)
-//     {
-// 		printf("%s", res);
-//         res = get_next_line(fd);
-//     }
-//     return (0);
-// }
