@@ -24,11 +24,14 @@ char	*ft_cut(char **buff_rem, char *buffer)
 		if (!to_ret)
 			return (ft_free(buffer, *buff_rem));
 		tmp = *buff_rem;
-		*buff_rem = ft_substr(tmp, ft_strchr(*buff_rem, '\n') + 1,
-				ft_strlen(*buff_rem) - ft_strchr(*buff_rem, '\n') + 1);
-		if (!(*buff_rem))
-			return (ft_free(buffer, *buff_rem));
+		*buff_rem = ft_substr(tmp, ft_strchr(tmp, '\n') + 1,
+				ft_strlen(tmp) - ft_strchr(tmp, '\n') + 1);
 		free(tmp);
+		if (!(*buff_rem))
+		{
+			free(to_ret);
+			return (ft_free(buffer, *buff_rem));
+		}
 	}
 	else
 	{
