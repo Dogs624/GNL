@@ -1,5 +1,4 @@
 #include "get_next_line.h"
-#include <stdio.h>
 
 static char	*ft_free(char *buffer, char *buff_rem)
 {
@@ -66,6 +65,6 @@ char	*get_next_line(int fd)
 			return (ft_free(buffer, buff_rem));
 	}
 	if (buff_rem == NULL || buff_rem[0] == '\0')
-		return (ft_free(buff_rem, buffer));
+		return (ft_free(buffer, buff_rem));
 	return (ft_cut(&buff_rem, buffer));
 }
