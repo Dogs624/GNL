@@ -1,16 +1,12 @@
 #include "get_next_line_bonus.h"
 
-char	*ft_free(char **buff_rem)
+char	*ft_free(char **buff_rem, int fd)
 {
-	int	i;
-
-	i = 0;
-	while (i < FOPEN_MAX)
+	if (buff_rem && buff_rem[fd])
 	{
-		if (buff_rem[i])
-			free(buff_rem[i]);
-		i++;
-	}
+		free(buff_rem[fd]);
+		buff_rem[fd] = NULL;
+	}	
 	return (NULL);
 }
 
@@ -23,7 +19,7 @@ char	*ft_cut(char **buff_rem, int fd)
 	{
 		to_ret = ft_substr(buff_rem[fd], 0, ft_strchr(buff_rem[fd], '\n') + 1);
 		if (!to_ret)
-			return (ft_free(buff_rem));
+			return (ft_free(buff_rem, fd));
 		tmp = buff_rem[fd];
 		buff_rem[fd] = ft_substr(tmp, ft_strchr(tmp, '\n') + 1,
 				ft_strlen(tmp) - ft_strchr(tmp, '\n') + 1);
@@ -31,7 +27,7 @@ char	*ft_cut(char **buff_rem, int fd)
 		if (!(buff_rem[fd]))
 		{
 			free(to_ret);
-			return (ft_free(buff_rem));
+			return (ft_free(buff_rem, fd));
 		}
 	}
 	else
@@ -79,26 +75,26 @@ char	*ft_strdup(const char *s1)
 char	*get_next_line(int fd)
 {
 	char		buffer[BUFFER_SIZE + 1];
-	static char	*buff_rem[FOPEN_MAX];
+	static char	*buff_rem[OPEN_MAX];
 	int			ret_read;
 
-	if (fd == -1 || BUFFER_SIZE < 1 || fd >= FOPEN_MAX)
+	if (fd == -1 || BUFFER_SIZE < 1 || fd >= OPEN_MAX)
 		return (NULL);
 	ret_read = 1;
 	while (ret_read > 0 && ft_strchr(buff_rem[fd], '\n') == -1)
 	{
 		ret_read = read(fd, buffer, BUFFER_SIZE);
 		if (ret_read == -1)
-			return (ft_free(buff_rem));
+			return (ft_free(buff_rem, fd));
 		buffer[ret_read] = '\0';
 		if (ret_read)
 		{
 			buff_rem[fd] = ft_strjoin_dup(buff_rem[fd], buffer);
 			if (!buff_rem[fd])
-				return (ft_free(buff_rem));
+				return (ft_free(buff_rem, fd));
 		}
 	}
 	if (!buff_rem[fd] || buff_rem[fd][0] == '\0')
-		return (ft_free(buff_rem));
+		return (ft_free(buff_rem, fd));
 	return (ft_cut(buff_rem, fd));
 }

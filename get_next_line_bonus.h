@@ -2,7 +2,7 @@
 # define GET_NEXT_LINE_BONUS_H
 # include <unistd.h>
 # include <stdlib.h>
-# include <stdio.h>
+# include <limits.h>
 
 char	*get_next_line(int fd);
 int		ft_strchr(const char *s, int c);
